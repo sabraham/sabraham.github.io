@@ -15,7 +15,7 @@ body {
 }
 
 #right {
-    width: 100px;
+    width: 85px;
     float: right;
     margin-top: 20px;
     margin-right: 20px;
@@ -27,7 +27,7 @@ body {
 }
 
 #container {
-    width: 700px;
+    width: 690px;
     float: left;
     margin-top: 20px;
     padding: 0;

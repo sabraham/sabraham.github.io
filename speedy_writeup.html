@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="right">
+    Sunil Abraham
+    <ul>
+      <li><a href="/">Home</a>
+    </ul>
+  </div>
+
+  <div id="left">&nbsp;</div>
+
+  <div id="container">
+    <h1>Writeup of NYC Traffic Visualization</h1>
+    <p><i>See the final product <a href="speedy.html">here</a></i><p>
+    <p>I stumbled on <a href="http://www.nyc.gov/html/dot/html/about/datafeeds.shtml#realtime">a feed of traffic speeds</a> provided by New York City Department of Transportation (DOT) and had fun getting a visualization running using Mike Bostock's excellent <a href="http://d3js.org/">D3</a>. Though a small project, I was both surprised and pleased to face difficulties and design decisions that are typical of larger systems and also have fun with past and present interests.</p>
+    <h2>Github as an Edge Cache</h2>
+    <p>Because I need to poll a remote service that doesn't have CORS enabled, I'm restricted by the same-origin policy of browsers and can't poll the service from the browser client. I had planned to have everything hosted on Github to avoid headaches (it's free! uptime almost-all-the-time!), but now I realized I needed to run a service to serve as a proxy between the DOT server and the browser. But wait -- I could still use Github! I could use my laptop to poll the DOT service, pipe to a file, commit, and push. Which is exactly what I ended up doing:</p>
+    <script src="https://gist.github.com/sabraham/2b8a6a69492f247ed42d.js"></script>
+    <center><i>Gardening tip: if you remove --amend, your Github will be more verdant than the Kew in full bloom.</i></center>
+    <h2>I Spend A Lot of Time Converting Files From One Format To Another</h2>
+    <p>Firstly, I initially tried to convert a shapefile I acquired from <a href="">NYC Open Data</a> to GeoJSON, but could never get it to work. After two nights of reading Stack Overflows and exploring dense ogr2ogr documentation, I found <a href="https://github.com/dwillis">Derek Willis</a> of the Times had already made <a href="https://github.com/dwillis/nyc-maps">NYC maps available</a>, so I Curled that and went on my way. I mention this to others who may stumble on this; it will become a project in itself to learn the motivations of ogr2ogr and nomenclature of projections, and aimless experimentation will be rewarded with a blank canvas, so don't commit lightly!</p>
+    <p>The DOT service provides a TSV (not CSV as listed) with sensor path information and speed on that path. Check out the head of a typical response:
+      <script src="https://gist.github.com/sabraham/6a1fffef860a726b3195.js"></script>
+      The official description of the DOT data can be found <a href="http://a841-dotweb01.nyc.gov/datafeeds/TrafficSpeed/metadata_trafficspeeds.pdf">here</a>. The path is encoded twice; once as a series of human readable lat-longs, and a second time as a <a href="https://developers.google.com/maps/documentation/utilities/polylinealgorithm">Google Polyline</a>.</p>
+    <p>Parsing the lat-long string, I found many well-traveled bridges that, until now, I never knew of.</p>
+    <img src="speedy_writeup/bridges_to_nowhere.jpg"></img>
+    <center><i>I understand pork is part of the democratic process, but do we really need three bridges to nowhere?</i></center>
+    <p>Decoding the Google Polyline instead removed the spurious points and these phantom bridges. The Polyline encoding is clearly better than the string of lat-longs, and though it's hard to say exactly why, I have three immediate reasons:</p>
+    <ol>
+      <li> It's complete. An additional problem with the lat-long string is that it isn't complete for paths with many points; the string appears to have a max length of 255 characters--will someone offer me a call on that this is VARCHAR(255)?--and so truncates long strings, giving two classes of errors: dropped points and truncated lat-long pairs.</li>
+      <li> It's compressed. This reduces the size of network requests for everyone, but touching on the first point, this is the difference between the service providing accurate versus inaccurate responses.</li>
+      <li>Someone else has written a decoder (that likely works). I spent a great deal of time fiddling with my decoding of the lat-long string (trim->split on  whitespace -> ...) and it mostly worked, but mostly worked in this case was completely broken. After seeing the data was sometimes bad, I bailed and switched the Polyline encoding. If I had started with the Polyline encoding, and the data were bad, I would have found that out quickly--my confidence is greater in Google's public code than in my hand-rolled solution. So use standard serialization formats (and, as a corollary, do not write DSLs!), unless you have an extremely good reason!</li>
+    </ol>
+    <p>I do concede though that human-readable formats make play much more possible; HTTP 1.1 is great fun to work with, and I think a lot of that comes from not having the level of indirection that a non-human-readable format would add.</p>
+    <h2>Smooth things out...</h2>
+    <p>... in space: When drawing the path, I choose not do make a linear interpolation between the sensor points, but a B-spline interpolation to get a smooth, not jagged, path. </p>
+    <center><img src="speedy_writeup/jerky.gif"></img></center>
+    <center><i>I didn't commit the bursty/jerky map, so have a gif instead</i></center>
+    <p>... in time: Querying the DOT service and immediately updating the map resulted in a small explosion of activity that quickly diffused with fast cars leaving the map quickly and slow cars persisting. A simple solution was to have a global queue in which the batch of updates are queued; with a small time interval, updates are dequeued. If the queue is exhausted, a call is made to refill it. Even though the average of updates in time is the same, the variance in time is smaller, as they are now uniformly spread in the time interval, instead of an impulse.</p>
+    <p>That Javascript's arrays can easily be used as a stack reminded me of a nice data structure that I first met in Okasaki's <a href="http://amzn.to/1rNT3Ph">Purely Functional Data Structures</a>: the purely functional queue represented as two stacks.</p>
+    <p>Here are implementations in Clojure, OCaml, and, non-functionally, Javascript:</p>
+    <script src="https://gist.github.com/sabraham/97978e1d8e71d718bc3b.js"></script>
+    <h2>Fast or Slow, you can stay, you can go</h2>
+    <p>I mentioned a feature of the map earlier, that cars tend to be either fast or slow, either fleeting or persistent. This seems to be common in computer systems, and moreover, systems typically know which camp you fall in before you go about your business. HPC clusters often have fast and slow queues to process tasks, and in a different context, <a href="https://www.youtube.com/watch?v=n5GT7OFSh58#t=1010">Mesos frameworks tend to want to be either a Jehovah's witness or immortal</a>. This is a feature of the system I wanted to preserve--that the map had a milky way but not at the expensive of its shooting stars. There was a risk that the slow cars wouldn't finish their journey quickly enough, and the number of objects and dom elements being updated would just be too much for my puny browser. Thankfully, the arbitrary parameters I choose to drain the queue seem to do the job, but if they hadn't, my next step would have been to have two queues, slow and fast, and drain these, each at different rates, and possibly dependent on how many cars were already on the map.</p>
+    <h2>Randomness</h2>
+    <p>Lastly, there were two places I played with randomness. Initially, I jittered (ie, add a small amount of noise to the x- and y- co&oumlrdinates to) the path points so that cars wouldn't overlap, but when I moved to such small cars, this wasn't an issue, and with larger numbers of paths on my screen, for some reason, the jittering contributed to my browser freezing. Secondly, to ensure order of the cars' appearances was not repetitive, I shuffled the batch before I queued them.</p>
+    <script src="https://gist.github.com/sabraham/d44e39eaaf8e3d5d21d2.js"></script>
+    <center><i>I recently read Casino Royale, and have had shuffling on the mind; here is the classic Fisher-Yates shuffle</i></center>
+  </div>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-52142746-1', 'tumblebolt.com');
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+  </script>
+</body>
+</html>

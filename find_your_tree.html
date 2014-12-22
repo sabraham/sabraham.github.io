@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<head>
+  <title>Find Your Tree</title>
+  <meta charset="utf-8">
+  <meta property="og:title" content="Find Your Tree - Statistical Analysis of NYC Christmas Trees" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="http://tumblebolt.com/find_your_tree/prices.jpg" />
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .axis {
+    font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+    }
+
+    img.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    }    
+  </style>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=PT+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+  <link href='https://netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css' rel='stylesheet' type='text/css'>
+  <link href='http://metricsgraphicsjs.org/css/metricsgraphics.css' rel='stylesheet' type='text/css'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+</head>
+<body>
+  <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+  <div id="right">
+    Sunil Abraham
+    <ul>
+      <li><a href="/">Home</a>
+    </ul>
+  </div>
+  <div id="left">&nbsp;</div>
+  <div id="container">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://tumblebolt.com/find_your_tree.html" data-text="Find Your Tree - A Statistical Look at NYC's Christmas Trees" data-via="sabraham" data-count="none">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+<div class="fb-share-button" data-href="http://tumblebolt.com/find_your_tree.html" data-layout="button" style="vertical-align:top;zoom:1;*display:inline"></div>
+    <h1>Find Your Tree</h1>
+    <img class="center" src="find_your_tree/header.jpg"></img>
+    <center><i>Tom Cruise, in "Eyes Wide Shut" (1999), a movie about a man finding Christmas trees in NYC</i></center>
+    <p><i><b><a href="https://www.youtube.com/watch?v=D16d6DAPpQI">Every Christmas Tree in Eyes Wide Shut</a></b></i><br>
+      by Orgotheonemancult x Stanley Kubrick</p>
+    <p><i><b><a href="http://www.wnyc.org/crowdsourcing/how-much-did-you-pay-your-christmas-tree/report/">How Much Did You Pay For Your Christmas Tree?</a></b></i><br>
+      by The Brian Lehrer Show<br>
+      WNYC<p>
+    <p><i><b><a href="http://www.wsj.com/news/articles/SB10001424127887324461604578193260364882572">Tree Sales Branching Out</a></b></i><br>
+      by Rachael Jarosh and Tracy Motz<br>
+      Wall Street Journal, December 24, 2012</p>
+    <p>If there is a Number One New York pastime, it is certainly coveting thy neighbor. If there is a Number Two New York pastime, it may be hauling low-stakes goods around the city. Thankfully, between company and home holiday parties, bonuses, and travel, Christmas ensures many New Yorkers are without want for their ritual. When it comes to Christmas trees, these two pastimes come together hand-in-hand.</p>
+    <p>When I moved to New York, I arrived to a mattress on the floor but otherwise bare apartment. For months, a plain 8-foot Christmas tree was the sole furnishing, and when it was removed, I was back to mattress minimalism. Then, just as now, seeing Christmas trees in brownstone windows and sold on curbs elicits questions about New York and its residents. Where are the most expensive trees? How variable is tree pricing, and how does it change as you move through the city? Who are buying trees, the religious or the agnostic? Who are the hidden population of tree sellers? Do SoHo loft-owners buy mongo trees for their mongo lofts?</p>
+    <p>Using <a href="http:///www.wnyc.org/crowdsourcing/how-much-did-you-pay-your-christmas-tree/report/">Christmas tree purchasing data</a> crowdsourced by The Brian Lehrer Show of WNYC, I was able to look into the question of spatial pricing. There are definite methodological concerns with using this dataset. No effort is made to weigh responses to relieve any sampling bias. Nonetheless, I don't believe the concerns are too great, given reasonable spatial coverage. The vast majority of responses came from Manhattan or Brooklyn; Staten Island is completely unrepresented. Of the 225 total responses, 109 were from Brooklyn, 85 from Manhattan, 26 from Queens, and 5 from the Bronx. Because of the few responses for Queens and the Bronx, I pooled their responses when comparing boroughs.</p>
+    <p>Here's a plot of what people spent on trees.</p>
+    <center>
+      <div id="bar1"></div>
+      <p><i>What people are paying, irrespective of height, broken down by borough</i><p>
+    </center>
+    <p>If we crudely normalize the price by the height of the tree, we can estimate what people would have paid for a 6-foot tree.</p>
+    <center>
+      <div id="bar2"></div>
+      <p><i>Roughly what people would pay for a 6-foot tree</i><p>
+    </center>
+    <!-- <p>We can also look at the distribution of tree heights.</p> -->
+    <!-- <center> -->
+    <!--   <div id="bar3"></div> -->
+    <!--   <p><i>Size of trees bought</i><p> -->
+    <!-- </center> -->
+    <p>Looking at these distributions, it's difficult to say with confidence if the distributions vary at all. However, there is a statistical test, called the Kolmogorov-Smirnov Test (K-S Test), that can be used to compare samples from two distributions to see if they are drawn from the same distribution. For example, that means that we can see if the distribution of tree purchase prices differs between boroughs.</p>
+    <p>The K-S Test says the distribution of actual purchases is indistinguishable between boroughs. However, there is weak evidence that, when normalizing for height of the tree, distributions between boroughs differ. If we plot height against price, we do see some correlation; as height goes up, so does price, but so does the variance or spread. If anyone is interested in Christmas tree arbitrage--go big.
+      <center>
+        <div id="scatter"></div>
+        <p><i>Height against Price. A little noise was added to each observation so multiple observations on the same coordinate wouldn't obscure each other in the visualization.</i><p>
+      </center>
+    <p>A simple linear model says that a tree in Manhattan costs $14.05 more than one in Queens or the Bronx. One in Brooklyn will cost you $10.53 more. Independently, each additional foot of tree will cost on average $8.75.</p>
+    <p>This model isn't terrible; each variable is statistically significant, and it accounts for 31% of the variation between tree prices, but what about the remaining 69%? If we suppose that prices are spatially smooth, meaning, they don't radically jump in price from block to block, it is most likely that this remaining 69% is accounted for by intra-borough variation. That is, pricing within a borough is much more variable than pricing between boroughs.</p>
+    <img class="center" src="find_your_tree/prices.jpg"></img>
+    <center><i>Average estimated price of a 6-foot Christmas tree in NYC, darker is more expensive, with black being $90 and white being $40.</i></center>
+    <p>To verify this, I made the map above from the same WNYC dataset. For me, this map tells two stories. Firstly, even Christmas trees are not immune to gentrification--if you want any hope of having pocket change to decorate your tree, stay away from the Village. Secondly, intra-borough variation is enormous. It makes no sense to talk about boroughs as a whole without first talking about the neighborhood. The variation inside boroughs is just too large--a tree in Park Slope could cost you nearly twice as much on the other side of the park in Crown Heights! At least with Christmas tree prices, the West Village and Soho have more in common with Greenpoint, Carroll Gardens, and Fort Greene than they do with Harlem, Bed-Stuy, or Coney Island--the distinction is neighborhood first, borough second.</p>
+    <p>All of this speaks to a larger point. Pace Zadie Smith, you neither will <a href="http://www.nybooks.com/articles/archives/2014/oct/23/find-your-beach/">find your beach</a> nor your tree in a certain New York borough. But in a certain New York neighborhood--perhaps.</p>
+      <div id="thx"><i>Thanks to Drew Kunas and Sergei Bernstein for methodological suggestions and to Matthew "Mystery" Chan for help with the copy.</i></div>
+  </div>
+
+
+  <script src="find_your_tree/charts.js"></script>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-52142746-1', 'tumblebolt.com');
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+
+  </script>
+</body>
+</html>
+
+

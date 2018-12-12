@@ -26,12 +26,29 @@ body {
     padding: 0;
 }
 
-#container {
+#container {    
     width: 690px;
     float: left;
     margin-top: 20px;
     margin-bottom: 40px;
     padding: 0;
+}
+
+#div {
+    display: flex;
+}
+
+.container {
+  display: grid;
+}
+
+.left-half {
+  grid-column: 1;
+}
+
+.right-half {
+    margin: 100;
+  grid-column: 2;
 }
 
 #header {
